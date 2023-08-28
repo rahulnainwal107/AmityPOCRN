@@ -8,7 +8,7 @@ const Tab = createMaterialTopTabNavigator();
 
 const ChatScreenTabs = () => {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator screenOptions={{lazy: true}}>
       <Tab.Screen name="GroupChat" component={GroupChat} />
       <Tab.Screen name="PrivateChatList" component={PrivateChatList} />
     </Tab.Navigator>
