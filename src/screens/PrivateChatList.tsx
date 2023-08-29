@@ -5,20 +5,84 @@ import {
   ChannelRepository,
   subscribeTopic,
   getChannelTopic,
+  getSubChannelTopic,
+  MessageRepository,
+  SubChannelRepository,
 } from '@amityco/ts-sdk';
 
 const disposers: Amity.Unsubscriber[] = [];
 const subscribedChannels: Amity.Channel['channelId'][] = [];
+const subChannelDisposers: Amity.Unsubscriber[] = [];
+
+const subscribeSubChannel = (subChannel: Amity.SubChannel) =>
+  subChannelDisposers.push(subscribeTopic(getSubChannelTopic(subChannel)));
 
 const subscribeChannels = (channels: Amity.Channel[]) =>
-  channels.forEach(c => {
-    if (!subscribedChannels.includes(c.channelId) && !c.isDeleted) {
-      subscribedChannels.push(c.channelId);
+  channels.forEach(async c => {
+    if (!subscribedChannels.includes(c.defaultSubChannelId) && !c.isDeleted) {
+      subscribedChannels.push(c.defaultSubChannelId);
 
       disposers.push(subscribeTopic(getChannelTopic(c)));
+      const subChannelRepository = await SubChannelRepository.getSubChannel(
+        c?.defaultSubChannelId,
+        ({data: subChannel, loading, error}) => {
+          if (subChannel) observeMessage(subChannel);
+        },
+      );
     }
   });
-const PrivateChatList = ({navigation}) => {
+
+const observeMessage = channel => {
+  console.log('observeMessage subChannelId  ', channel);
+  // observeMessages(channelId, result => {
+  //   runQuery(query, result => {
+  //     if (result.data != undefined) {
+  //       messageArray = [];
+  //       for (let data of result.data) {
+  //         messageArray.push({
+  //           _id: data?.messageId,
+  //           text: data.data['text'],
+  //           createdAt: new Date(),
+  //           user: {
+  //             _id: data?.userId,
+  //             name: data?.userId,
+  //             avatar: 'https://placeimg.com/140/140/any',
+  //           },
+  //         });
+  //       }
+  //     }
+  //     messageArray.reverse();
+
+  //     console.log('messageArray ', messageArray);
+  //   });
+  // });
+
+  const unsubscribe = MessageRepository.getMessages(
+    {subChannelId: channel?.subChannelId},
+    ({data: messages, onNextPage, hasNextPage, loading, error}) => {
+      console.log('messages ', messages);
+      //setMessages(messages);
+      //setMessages(messages);
+      /*
+       * this is only required if you want real time updates for messages
+       * in the collection
+       *
+       */
+      subscribeSubChannel(channel as Amity.SubChannel);
+    },
+  );
+
+  /*
+   * if you only wish to get a collection or list of paginated messages without
+   * any real time updates you can unsubscribe immediately after you call the
+   * collection.
+   * ex: unsubscribe()
+   */
+  subChannelDisposers.push(unsubscribe);
+};
+
+const PrivateChatList = ({navigation, userInfo = {}}) => {
+  const {userId, username, chatWithUserId} = userInfo;
   const [message, onChangeMessage] = useState('');
   const [channels, setChannels] = useState([]);
   const [chatList, setChatList] = useState([]);
@@ -68,6 +132,7 @@ const PrivateChatList = ({navigation}) => {
 
     return () => {
       disposers.forEach(fn => fn());
+      subChannelDisposers.forEach(fn => fn());
     };
   }, []);
 
@@ -79,7 +144,7 @@ const PrivateChatList = ({navigation}) => {
         displayName: 'myCommunityChannel',
         tags: ['tag'],
         type: 'conversation' as Amity.ChannelType,
-        userIds: ['12345'],
+        userIds: [chatWithUserId],
         metadata: {
           data: 'anything',
         },
@@ -104,7 +169,9 @@ const PrivateChatList = ({navigation}) => {
       data={channels}
       renderItem={({item, index}) => (
         <View>
-          <Pressable onPress={() => navigation.navigate('PrivateChat', {item})}>
+          <Pressable
+            onPress={() => navigation.navigate('PrivateChat', {item, userId})}
+            style={{paddingHorizontal: 20, marginVertical: 10}}>
             <Text>{item?.channelId}</Text>
           </Pressable>
         </View>

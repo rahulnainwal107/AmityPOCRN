@@ -41,15 +41,16 @@ import {profileImages} from '../dummydata';
 // })();
 
 const MainScreen = ({navigation}) => {
-  const [username, onChangeUsername] = useState('Rahul Nainwal 1');
+  const [username, onChangeUsername] = useState('');
   const [userId, onChangeUserId] = useState('');
+  const [chatWithUserId, setChatWithUserId] = useState('');
   const profileImage = useMemo(() => {
     return profileImages[Math.round(Math.random() * 10)];
   }, []);
 
-  useEffect(() => {
-    createClient();
-  }, []);
+  // useEffect(() => {
+  //   createClient();
+  // }, []);
 
   const createClient = async () => {
     const sessionHandler: Amity.SessionHandler = {
@@ -75,19 +76,19 @@ const MainScreen = ({navigation}) => {
     //disableCache();
 
     let isConnected = await Client.login(
-      {userId: '123456', displayName: 'Rahul Nainwal 1'},
+      {userId: userId, displayName: username},
       sessionHandler,
     );
     if (isConnected) {
       console.log('isConnected ', isConnected);
-      const {data: updatedUser} = await UserRepository.updateUser('123456', {
+      const {data: updatedUser} = await UserRepository.updateUser(userId, {
         displayName: username,
         description: 'My name is John',
         metadata: {},
         avatarCustomUrl: profileImage,
       });
       console.log('updatedUser ', updatedUser);
-      navigation.navigate('ChatScreenTabs');
+      navigation.navigate('ChatScreenTabs', {username, userId, chatWithUserId});
     }
   };
 
@@ -121,6 +122,18 @@ const MainScreen = ({navigation}) => {
         value={userId}
         placeholder="Enter user id"
       />
+      <TextInput
+        style={{
+          height: 40,
+          margin: 12,
+          borderWidth: 1,
+          padding: 10,
+          borderRadius: 5,
+        }}
+        onChangeText={setChatWithUserId}
+        value={chatWithUserId}
+        placeholder="Chat with user id"
+      />
       <Pressable
         style={{
           height: 40,
@@ -130,7 +143,7 @@ const MainScreen = ({navigation}) => {
           backgroundColor: 'green',
           borderRadius: 5,
         }}
-        onPress={null}>
+        onPress={createClient}>
         <Text
           style={{
             color: 'white',

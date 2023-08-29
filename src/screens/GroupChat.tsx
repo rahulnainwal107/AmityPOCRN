@@ -19,7 +19,8 @@ const channelId = '64c8b59e000d6e6f291a61b5';
 const disposers: Amity.Unsubscriber[] = [];
 const subscribedChannels: Amity.Channel['channelId'][] = [];
 
-const GroupChat = () => {
+const GroupChat = ({userInfo = {}}) => {
+  const {userId, username} = userInfo;
   const [message, onChangeMessage] = useState('');
   const [messages, setMessages] = useState([]);
 
@@ -55,7 +56,7 @@ const GroupChat = () => {
               async response => {
                 console.log('Response ', response);
                 if (
-                  !response?.data?.find(member => member?.userId === '123456')
+                  !response?.data?.find(member => member?.userId === userId)
                 ) {
                   const didJoinChannel = await ChannelRepository.joinChannel(
                     channelId,
@@ -117,7 +118,7 @@ const GroupChat = () => {
       console.log('new channel ', channel);
       ChannelRepository.Membership.getMembers({channelId}, async response => {
         console.log('Response ', response, isLoading, error);
-        if (!response?.data?.find(member => member?.userId === '123456')) {
+        if (!response?.data?.find(member => member?.userId === userId)) {
           const didJoinChannel = await ChannelRepository.joinChannel(channelId);
           console.log('didJoinChannel ', didJoinChannel);
         }
@@ -184,7 +185,7 @@ const GroupChat = () => {
   };
 
   const sendGroupChat = async () => {
-    const {data: userData} = await UserRepository.getUserByIds(['123456']);
+    const {data: userData} = await UserRepository.getUserByIds([userId]);
 
     const data1 = JSON.stringify({
       username: userData?.[0]?.displayName,
@@ -217,7 +218,6 @@ const GroupChat = () => {
           renderItem={({item, index}) => {
             const metaData =
               item?.metadata?.data && JSON.parse(item.metadata.data);
-            console.log('metaData ', metaData);
             return (
               <View
                 style={{

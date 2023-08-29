@@ -6,11 +6,20 @@ import PrivateChatList from '../screens/PrivateChatList';
 
 const Tab = createMaterialTopTabNavigator();
 
-const ChatScreenTabs = () => {
+const ChatScreenTabs = ({route}) => {
+  console.log('route ChatScreenTabs ', route);
   return (
     <Tab.Navigator screenOptions={{lazy: true}}>
-      <Tab.Screen name="GroupChat" component={GroupChat} />
-      <Tab.Screen name="PrivateChatList" component={PrivateChatList} />
+      <Tab.Screen
+        name="GroupChat"
+        children={props => <GroupChat {...props} userInfo={route?.params} />}
+      />
+      <Tab.Screen
+        name="PrivateChatList"
+        children={props => (
+          <PrivateChatList {...props} userInfo={route?.params} />
+        )}
+      />
     </Tab.Navigator>
   );
 };
