@@ -7,7 +7,7 @@
   resolved "https://registry.npmjs.org/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
-"@amityco/ts-sdk@^6.7.0":
+"@amityco/ts-sdk@6.7.0":
   version "6.7.0"
   resolved "https://registry.yarnpkg.com/@amityco/ts-sdk/-/ts-sdk-6.7.0.tgz#793fc63b35f8982a553c119cb742a3e0470aaa76"
   integrity sha512-kDo64YcvaGRJHq8UOsy5jAZfWcf9HiWuF815uPs5ekTQjPGENR84jHsTHDqidTOZhKeDMsqULgZRHftlkoYxfA==

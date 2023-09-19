@@ -15,7 +15,7 @@ import {
   UserRepository,
 } from '@amityco/ts-sdk';
 
-const channelId = '64c8b59e000d6e6f291a61b5';
+const channelId = '64c8b59e000d6e6f381a61b5';
 const disposers: Amity.Unsubscriber[] = [];
 const subscribedChannels: Amity.Channel['channelId'][] = [];
 
@@ -27,8 +27,6 @@ const GroupChat = ({userInfo = {}}) => {
   const [channel, setChannel] = useState<Amity.Channel>();
   const currentPage: Amity.Page = {limit: 50};
 
-  const disposers: Amity.Unsubscriber[] = [];
-
   const subscribeSubChannel = (subChannel: Amity.SubChannel) =>
     disposers.push(subscribeTopic(getSubChannelTopic(subChannel)));
 
@@ -37,13 +35,13 @@ const GroupChat = ({userInfo = {}}) => {
       channelId,
       ({data: channel, loading, error}) => {
         console.log('channel ', channel, loading, error);
-        // you should explicitly subscribe for 'live' and 'broadcast' channel
+
         if (!loading) {
           // if (channel?.type === 'live' || channel?.type === 'broadcast') {
           //   disposers.push(subscribeTopic(getChannelTopic(channel)));
           //}
           console.log('channel 111 ', channel);
-          if (!channel) {
+          if (!channel || error?.code === '400400') {
             createChannel();
           } else {
             setChannel(channel);
@@ -72,7 +70,6 @@ const GroupChat = ({userInfo = {}}) => {
     );
     unsubscribe();
     return () => {
-      //unsubscribe();
       disposers.forEach(fn => fn());
     };
   }, [channelId]);
@@ -161,9 +158,9 @@ const GroupChat = ({userInfo = {}}) => {
     // });
 
     const unsubscribe = MessageRepository.getMessages(
-      {subChannelId: channel?.subChannelId},
+      {subChannelId: channel?.subChannelId, limit: 100},
       ({data: messages, onNextPage, hasNextPage, loading, error}) => {
-        console.log('messages ', messages);
+        console.log('messages MessageRepository ', messages);
         setMessages(messages);
         //setMessages(messages);
         /*

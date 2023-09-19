@@ -22,6 +22,9 @@ const PrivateChat = ({navigation, route}) => {
 
   useEffect(() => {
     getSubChannel();
+    return () => {
+      disposers.forEach(fn => fn());
+    };
   }, []);
 
   const getSubChannel = async () => {

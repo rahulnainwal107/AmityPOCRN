@@ -18,16 +18,32 @@ const subscribeSubChannel = (subChannel: Amity.SubChannel) =>
   subChannelDisposers.push(subscribeTopic(getSubChannelTopic(subChannel)));
 
 const subscribeChannels = (channels: Amity.Channel[]) =>
-  channels.forEach(async c => {
-    if (!subscribedChannels.includes(c.defaultSubChannelId) && !c.isDeleted) {
-      subscribedChannels.push(c.defaultSubChannelId);
-
+  channels.forEach(c => {
+    if (!subscribedChannels.includes(c.channelId) && !c.isDeleted) {
+      subscribedChannels.push(c.channelId);
       disposers.push(subscribeTopic(getChannelTopic(c)));
-      const subChannelRepository = await SubChannelRepository.getSubChannel(
-        c?.defaultSubChannelId,
-        ({data: subChannel, loading, error}) => {
-          if (subChannel) observeMessage(subChannel);
-        },
+      disposers.push(
+        SubChannelRepository.getSubChannels(
+          {
+            channelId: c?.defaultSubChannelId,
+            excludeDefaultSubChannel: false,
+            includeDeleted: false,
+          },
+          ({data: subChannels, onNextPage, hasNextPage, loading, error}) => {
+            //setSubChannels(subChannels);
+            /*
+             * this is only required if you want real time updates for subchannels
+             * in the collection
+             *
+             */
+            if (!loading && subChannels) {
+              console.log('subChannels ', subChannels);
+              subChannels?.forEach(subChannel =>
+                disposers.push(subscribeTopic(getSubChannelTopic(subChannel))),
+              );
+            }
+          },
+        ),
       );
     }
   });
@@ -112,13 +128,16 @@ const PrivateChatList = ({navigation, userInfo = {}}) => {
         limit: 25,
       },
       ({data: channels, onNextPage, hasNextPage, loading, error}) => {
-        console.log('channels ', channels);
-        setChannels(channels);
-        /*
-         * this is only required if you want real time updates for each
-         * channel in the collection
-         */
-        subscribeChannels(channels);
+        if (!loading) {
+          console.log('channels ', channels);
+          setChannels(channels);
+          /*
+           * this is only required if you want real time updates for each
+           * channel in the collection
+           */
+          subscribeChannels(channels);
+          //disposers.push(subscribeTopic(getChannelTopic(channel)));
+        }
       },
     );
 
